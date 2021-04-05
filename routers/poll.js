@@ -13,7 +13,7 @@ router.get('/', (req, res) => {
     res.send('all votes')
 })
 
-router.post('/poll', (req, res) => {
+router.post('/', (req, res) => {
     pusher.trigger("os-poll", "os-vote", {
         points: 1,
         os: req.body.os
