@@ -1,6 +1,7 @@
 'use district'
 const form = document.getElementById('os-form');
 form.addEventListener('submit', (e) => {
+    e.preventDefault()
     const choice = document.querySelector('input[name=os]:checked').value
     const data = {
         os: choice
@@ -15,48 +16,66 @@ form.addEventListener('submit', (e) => {
         .then(res => res.json())
         .then(data => console.log(data))
         .catch(err => console.log(err))
-    e.preventDefault()
 })
-//setting the Canvas Chart
-var dataPoints = [
-    { label: "windows", y: 0 },
-    { label: "linux", y: 0 },
-    { label: "macos", y: 0 },
-    { label: "other", y: 0 },
-]
-var chart = new CanvasJS.Chart("chartContainer", {
-    theme: "light1",
-    animationEnabled: true,
-    title: {
-        text: "OS total votes"
-    },
-    data: [
-        {
-            // Change type to "bar", "area", "spline", "pie",etc.
-            type: "column",
-            dataPoints: dataPoints
-        }
-    ]
-});
-chart.render();
-//
+//setting the Canvas Chart dynamically with database data
+fetch('http://localhost:2222/poll')
+    .then(res => res.json())
+    .then(data => {
+        let votes = data.votes
+        let points = 0
+        votes.forEach(vote => {
+            points += vote.points
+        });
+        let voteCounts = {
+            windows: 0,
+            macOS: 0,
+            linux: 0,
+            other: 0
+        };
 
-// Enable pusher logging 
-Pusher.logToConsole = true;
+        voteCounts = votes.reduce((acc, vote) => (
+            (acc[vote.os] = (acc[vote.os] || 0) + vote.points), acc),
+            {}
+        )
+        var dataPoints = [
+            { label: "windows", y: voteCounts.windows },
+            { label: "linux", y: voteCounts.linux },
+            { label: "macos", y: voteCounts.macos },
+            { label: "other", y: voteCounts.other },
+        ]
+        var chart = new CanvasJS.Chart("chartContainer", {
+            theme: "light1",
+            animationEnabled: true,
+            title: {
+                text: `OS total votes ${points}`
+            },
+            data: [
+                {
+                    // Change type to "bar", "area", "spline", "pie",etc.
+                    type: "column",
+                    dataPoints: dataPoints
+                }
+            ]
+        });
+        chart.render();
 
-var pusher = new Pusher('54690409b68318b46005', {
-    cluster: 'eu'
-});
+        // Enable pusher logging 
+        Pusher.logToConsole = true;
 
-var channel = pusher.subscribe('os-poll');
-channel.bind('os-vote', function (data) {
-    dataPoints = dataPoints.map(x => {
-        if (x.label === data.os) {
-            x.y = data.points
-            return x
-        } else {
-            return x
-        }
+        var pusher = new Pusher('54690409b68318b46005', {
+            cluster: 'eu'
+        });
+
+        var channel = pusher.subscribe('os-poll');
+        channel.bind('os-vote', function (data) {
+            dataPoints = dataPoints.map(x => {
+                if (x.label === data.os) {
+                    x.y = data.points
+                    return x
+                } else {
+                    return x
+                }
+            })
+            chart.render()
+        });
     })
-    chart.render()
-});
