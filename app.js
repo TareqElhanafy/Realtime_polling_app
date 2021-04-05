@@ -3,7 +3,7 @@ const bodyParser = require('body-parser')
 const path = require('path')
 const cors = require('cors')
 require('dotenv').config()
-
+const poll = require('./routers/poll')
 
 const app = express()
 
@@ -17,6 +17,9 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 //enable cors
 app.use(cors())
+
+//Routes
+app.use('/poll', poll)
 
 //setting the port
 app.listen(process.env.PORT, () => {
