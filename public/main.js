@@ -28,7 +28,7 @@ fetch('http://localhost:2222/poll')
         });
         let voteCounts = {
             windows: 0,
-            macOS: 0,
+            macos: 0,
             linux: 0,
             other: 0
         };
