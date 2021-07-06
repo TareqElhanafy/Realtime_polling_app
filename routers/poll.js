@@ -21,14 +21,13 @@ router.post('/', async (req, res) => {
     var vote = await Vote.findOne({ os: req.body.os })
     if (vote) {
         vote.points = await (vote.points + 1)
-        await vote.save()
     } else {
          vote = new Vote({
             os: req.body.os,
             points: 1
         })
-        await vote.save()
     }
+     await vote.save()
     console.log(vote);
     pusher.trigger("os-poll", "os-vote", {
         points: vote.points,
